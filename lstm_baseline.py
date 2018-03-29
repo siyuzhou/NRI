@@ -197,14 +197,6 @@ if args.cuda:
     model.cuda()
 
 
-def nll_gaussian(preds, target, variance, add_const=False):
-    neg_log_p = ((preds - target) ** 2 / (2 * variance))
-    if add_const:
-        const = 0.5 * np.log(2 * np.pi * variance)
-        neg_log_p += const
-    return neg_log_p.sum() / (target.size(0) * target.size(1))
-
-
 def train(epoch, best_val_loss):
     t = time.time()
     loss_train = []
@@ -334,7 +326,7 @@ def test():
 
             # Baseline over multiple steps
             baseline = inputs[:, :, -(args.timesteps + 1):-args.timesteps,
-                       :].expand_as(
+                              :].expand_as(
                 target)
             mse_baseline = ((target - baseline) ** 2).mean(dim=0).mean(
                 dim=0).mean(
@@ -356,7 +348,7 @@ def test():
 
             # Baseline over multiple steps
             baseline = inputs[:, :, args.timesteps:args.timesteps + 1,
-                       :].expand_as(
+                              :].expand_as(
                 target)
             mse_baseline = ((target - baseline) ** 2).mean(dim=0).mean(
                 dim=0).mean(
