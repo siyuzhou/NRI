@@ -132,14 +132,6 @@ rel_rec = Variable(rel_rec)
 rel_send = Variable(rel_send)
 
 
-def nll_gaussian(preds, target, variance, add_const=False):
-    neg_log_p = ((preds - target) ** 2 / (2 * variance))
-    if add_const:
-        const = 0.5 * np.log(2 * np.pi * variance)
-        neg_log_p += const
-    return neg_log_p.sum() / (target.size(0) * target.size(1))
-
-
 def train(epoch, best_val_loss):
     t = time.time()
     loss_train = []
@@ -309,14 +301,14 @@ def test():
             output = output[:, :, args.timesteps:, :]
             target = inputs[:, :, -args.timesteps:, :]
             baseline = inputs[:, :, -(args.timesteps + 1):-args.timesteps,
-                       :].expand_as(target)
+                              :].expand_as(target)
         else:
             data_plot = inputs[:, :, args.timesteps:args.timesteps + 21,
-                        :].contiguous()
+                               :].contiguous()
             output = model(data_plot, rel_type_onehot, rel_rec, rel_send, 20)
             target = data_plot[:, :, 1:, :]
             baseline = inputs[:, :, args.timesteps:args.timesteps + 1,
-                       :].expand_as(target)
+                              :].expand_as(target)
         mse = ((target - output) ** 2).mean(dim=0).mean(dim=0).mean(dim=-1)
         tot_mse += mse.data.cpu().numpy()
         counter += 1
