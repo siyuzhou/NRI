@@ -113,13 +113,20 @@ class MLPEncoder(nn.Module):
     def edge2node(self, x, rel_rec, rel_send):
         # NOTE: Assumes that we have the same graph across all samples.
         incoming = torch.matmul(rel_rec.t(), x)
-        return incoming / incoming.size(1)
+        # Summarize the encoded features from all incoming edges
+        # rel_rec.t() shape: [num_atoms, num_edges]
+        # incoming shape: [num_sims, num_atoms, n_hid]
+        return incoming / incoming.size(1)  # Divided by num of all possible edges.
 
     def node2edge(self, x, rel_rec, rel_send):
         # NOTE: Assumes that we have the same graph across all samples.
+        # rel_rec shape: [num_edges, num_atoms]
         receivers = torch.matmul(rel_rec, x)
+        # receivers shape: [num_sims, num_edges, n_hid]
+
         senders = torch.matmul(rel_send, x)
         edges = torch.cat([receivers, senders], dim=2)
+        # edge shape: [num_sims, num_edges, n_hid + n_hid]
         return edges
 
     def forward(self, inputs, rel_rec, rel_send):
@@ -128,16 +135,34 @@ class MLPEncoder(nn.Module):
         # New shape: [num_sims, num_atoms, num_timesteps*num_dims]
 
         x = self.mlp1(x)  # 2-layer ELU net per node
+        # x stores the embedded node state of width n_hid
+        # x shape: [num_sims, num_atoms, n_hid]
+        # Temporal information is thus transformed into output hidden layer.
 
         x = self.node2edge(x, rel_rec, rel_send)
+        # Embedded state of x is passed through edges, both as receiver and as sender.
+        # edge shape: [num_sims, num_edges, n_hid + n_hid]
         x = self.mlp2(x)
+        # Furthur encoded.
+        # x shape: [num_sims, num_edges, n_hid]
         x_skip = x
 
         if self.factor:
+            # NOTE: According to `node2edge`, x contains the information sent from each
+            # node the encoded node state through /both/ outgoing edges and incoming edges.
             x = self.edge2node(x, rel_rec, rel_send)
+            # NOTE: So after `edge2node`, x has picked out the encoded information from
+            # incoming neighbors and that from the node itself through its outgoing edges.
+            # NOTE: Another equivolent way to understand this, is that after `node2edge`,
+            # each edge pickes up encoded information from nodes on both ends, and by
+            # `edge2node` the information is aggregated only to the receiving end of the edges,
+            # so the node receives information from itself again through incoming edges along with
+            # information of neighbors these edges attach to.
             x = self.mlp3(x)
             x = self.node2edge(x, rel_rec, rel_send)
             x = torch.cat((x, x_skip), dim=2)  # Skip connection
+            # x contains info embedded in each edge by the first `node2edge` encoding
+            # and the second pass, concatenated together.
             x = self.mlp4(x)
         else:
             x = self.mlp3(x)
@@ -145,12 +170,12 @@ class MLPEncoder(nn.Module):
             x = self.mlp4(x)
 
         return self.fc_out(x)
+        # Output shape: [num_sims, num_edges, n_out]
 
 
 class CNNEncoder(nn.Module):
     def __init__(self, n_in, n_hid, n_out, do_prob=0., factor=True):
         super(CNNEncoder, self).__init__()
-        self.dropout_prob = do_prob
 
         self.factor = factor
 
@@ -177,12 +202,14 @@ class CNNEncoder(nn.Module):
         # NOTE: Assumes that we have the same graph across all samples.
 
         x = inputs.view(inputs.size(0), inputs.size(1), -1)
-
+        # x shape: [num_sims, num_atoms, num_timesteps * num_dims]
         receivers = torch.matmul(rel_rec, x)
+        # receivers shape: [num_sims, num_edges, num_timesteps * num_dims]
         receivers = receivers.view(inputs.size(0) * receivers.size(1),
                                    inputs.size(2), inputs.size(3))
+        # receivers shape: [num_sims * num_edges, num_timesteps, num_dims]
         receivers = receivers.transpose(2, 1)
-
+        # receivers shape: [num_sims * num_edges, num_dims, num_timesteps]
         senders = torch.matmul(rel_send, x)
         senders = senders.view(inputs.size(0) * senders.size(1),
                                inputs.size(2),
@@ -192,6 +219,7 @@ class CNNEncoder(nn.Module):
         # receivers and senders have shape:
         # [num_sims * num_edges, num_dims, num_timesteps]
         edges = torch.cat([receivers, senders], dim=1)
+        # edges shape: [num_sims * num_edges, num_dims * 2, num_timesteps]
         return edges
 
     def edge2node(self, x, rel_rec, rel_send):
@@ -207,12 +235,19 @@ class CNNEncoder(nn.Module):
         return edges
 
     def forward(self, inputs, rel_rec, rel_send):
-
         # Input has shape: [num_sims, num_atoms, num_timesteps, num_dims]
         edges = self.node2edge_temporal(inputs, rel_rec, rel_send)
+        # edges shape: [num_sims * num_edges, num_dims * 2, num_timesteps]
+        # Temporal information is preserved.
         x = self.cnn(edges)
+        # The Conv1d module treats the input edges according to:
+        # [num_data, num_channels, 1d_data]
+        # x shape: [num_sims * num_edges, n_hid, conved_size]
         x = x.view(inputs.size(0), (inputs.size(1) - 1) * inputs.size(1), -1)
+        # x shape: [num_sims, num_edges, n_hid * conved_size]
         x = self.mlp1(x)
+        # x shape: [num_sims, num_edges, n_hid]
+        # Temporal information is further encoded by MLP.
         x_skip = x
 
         if self.factor:
@@ -224,6 +259,7 @@ class CNNEncoder(nn.Module):
             x = self.mlp3(x)
 
         return self.fc_out(x)
+        # Output shape: [num_sims, num_edges, n_out]
 
 
 class SimulationDecoder(nn.Module):
@@ -361,7 +397,7 @@ class SimulationDecoder(nn.Module):
                 pair_dist = pair_dist.view(inputs.size(0), (inputs.size(2) - 1),
                                            inputs.size(1), inputs.size(1), 2)
                 forces = (
-                        forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
+                    forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
                     3)
             else:  # charged particle sim
                 e = (-1) * (edges * 2 - 1)
