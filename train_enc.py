@@ -26,7 +26,7 @@ parser.add_argument('--hidden', type=int, default=512,
                     help='Number of hidden units.')
 parser.add_argument('--num-atoms', type=int, default=5,
                     help='Number of atoms in simulation.')
-parser.add_argument('--num-classes', type=int, default=2,
+parser.add_argument('--edge-types', type=int, default=2,
                     help='Number of edge types.')
 parser.add_argument('--encoder', type=str, default='mlp',
                     help='Type of path encoder model (mlp or cnn).')
@@ -96,10 +96,10 @@ rel_send = torch.FloatTensor(rel_send)
 
 if args.encoder == 'mlp':
     model = MLPEncoder(args.timesteps * args.dims, args.hidden,
-                       args.num_classes,
+                       args.edge_types,
                        args.dropout, args.factor)
 elif args.encoder == 'cnn':
-    model = CNNEncoder(args.dims, args.hidden, args.num_classes,
+    model = CNNEncoder(args.dims, args.hidden, args.edge_types,
                        args.dropout, args.factor)
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -137,7 +137,7 @@ def train(epoch, best_val_accuracy):
         output = model(data, rel_rec, rel_send)
 
         # Flatten batch dim
-        output = output.view(-1, args.num_classes)
+        output = output.view(-1, args.edge_types)
         target = target.view(-1)
 
         loss = F.cross_entropy(output, target)
@@ -160,7 +160,7 @@ def train(epoch, best_val_accuracy):
         output = model(data, rel_rec, rel_send)
 
         # Flatten batch dim
-        output = output.view(-1, args.num_classes)
+        output = output.view(-1, args.edge_types)
         target = target.view(-1)
 
         loss = F.cross_entropy(output, target)
@@ -208,7 +208,7 @@ def test():
 
         output = model(data, rel_rec, rel_send)
         # Flatten batch dim
-        output = output.view(-1, args.num_classes)
+        output = output.view(-1, args.edge_types)
         target = target.view(-1)
 
         loss = F.cross_entropy(output, target)
