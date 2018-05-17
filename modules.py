@@ -52,7 +52,8 @@ class CNN(nn.Module):
 
         self.conv1 = nn.Conv1d(n_in, n_hid, kernel_size=5, stride=1, padding=0)
         self.bn1 = nn.BatchNorm1d(n_hid)
-        self.conv2 = nn.Conv1d(n_hid, n_hid, kernel_size=5, stride=1, padding=0)
+        self.conv2 = nn.Conv1d(
+            n_hid, n_hid, kernel_size=5, stride=1, padding=0)
         self.bn2 = nn.BatchNorm1d(n_hid)
         self.conv_predict = nn.Conv1d(n_hid, n_out, kernel_size=1)
         self.conv_attention = nn.Conv1d(n_hid, 1, kernel_size=1)
@@ -116,7 +117,8 @@ class MLPEncoder(nn.Module):
         # Summarize the encoded features from all incoming edges
         # rel_rec.t() shape: [num_atoms, num_edges]
         # incoming shape: [num_sims, num_atoms, n_hid]
-        return incoming / incoming.size(1)  # Divided by num of all possible edges.
+        # Divided by num of all possible edges.
+        return incoming / incoming.size(1)
 
     def node2edge(self, x, rel_rec, rel_send):
         # NOTE: Assumes that we have the same graph across all samples.
@@ -143,7 +145,7 @@ class MLPEncoder(nn.Module):
         # Embedded state of x is passed through edges, both as receiver and as sender.
         # edge shape: [num_sims, num_edges, n_hid + n_hid]
         x = self.mlp2(x)
-        # Furthur encoded.
+        # Further encoded.
         # x shape: [num_sims, num_edges, n_hid]
         x_skip = x
 
@@ -359,8 +361,10 @@ class SimulationDecoder(nn.Module):
         # Broadcasting/shape tricks for parallel processing of time steps
         loc = loc.permute(0, 2, 1, 3).contiguous()
         vel = vel.permute(0, 2, 1, 3).contiguous()
-        loc = loc.view(inputs.size(0) * (inputs.size(2) - 1), inputs.size(1), 2)
-        vel = vel.view(inputs.size(0) * (inputs.size(2) - 1), inputs.size(1), 2)
+        loc = loc.view(inputs.size(0) * (inputs.size(2) - 1),
+                       inputs.size(1), 2)
+        vel = vel.view(inputs.size(0) * (inputs.size(2) - 1),
+                       inputs.size(1), 2)
 
         loc, vel = self.unnormalize(loc, vel)
 
@@ -410,7 +414,8 @@ class SimulationDecoder(nn.Module):
                                                      (inputs.size(2) - 1),
                                                      inputs.size(1),
                                                      inputs.size(1))
-                forces_size = forces_size.unsqueeze(1) / (l2_dist_power3 + _EPS)
+                forces_size = forces_size.unsqueeze(
+                    1) / (l2_dist_power3 + _EPS)
 
                 pair_dist = torch.cat(
                     (dist_x.unsqueeze(-1), dist_y.unsqueeze(-1)),
@@ -499,6 +504,7 @@ class MLPDecoder(nn.Module):
             msg = F.relu(self.msg_fc1[i](pre_msg))
             msg = F.dropout(msg, p=self.dropout_prob)
             msg = F.relu(self.msg_fc2[i](msg))
+            # Element-wise
             msg = msg * single_timestep_rel_type[:, :, :, i:i + 1]
             all_msgs += msg
 

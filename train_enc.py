@@ -96,10 +96,10 @@ rel_send = torch.FloatTensor(rel_send)
 
 if args.encoder == 'mlp':
     model = MLPEncoder(args.timesteps * args.dims, args.hidden,
-                       args.edge_types,
+                       args.num_classes,
                        args.dropout, args.factor)
 elif args.encoder == 'cnn':
-    model = CNNEncoder(args.dims, args.hidden, args.edge_types,
+    model = CNNEncoder(args.dims, args.hidden, args.num_classes,
                        args.dropout, args.factor)
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
