@@ -151,19 +151,22 @@ def load_data(batch_size=1, suffix=''):
     vel_train = np.transpose(vel_train, [0, 3, 1, 2])
     feat_train = np.concatenate([loc_train, vel_train], axis=3)
     edges_train = np.reshape(edges_train, [-1, num_atoms ** 2])
-    edges_train = np.array((edges_train + 1) / 2, dtype=np.int64)
+    if 'charged' in suffix:
+        edges_train = np.array((edges_train + 1) / 2, dtype=np.int64)
 
     loc_valid = np.transpose(loc_valid, [0, 3, 1, 2])
     vel_valid = np.transpose(vel_valid, [0, 3, 1, 2])
     feat_valid = np.concatenate([loc_valid, vel_valid], axis=3)
     edges_valid = np.reshape(edges_valid, [-1, num_atoms ** 2])
-    edges_valid = np.array((edges_valid + 1) / 2, dtype=np.int64)
+    if 'charged' in suffix:
+        edges_valid = np.array((edges_valid + 1) / 2, dtype=np.int64)
 
     loc_test = np.transpose(loc_test, [0, 3, 1, 2])
     vel_test = np.transpose(vel_test, [0, 3, 1, 2])
     feat_test = np.concatenate([loc_test, vel_test], axis=3)
     edges_test = np.reshape(edges_test, [-1, num_atoms ** 2])
-    edges_test = np.array((edges_test + 1) / 2, dtype=np.int64)
+    if 'charged' in suffix:
+        edges_test = np.array((edges_test + 1) / 2, dtype=np.int64)
 
     feat_train = torch.FloatTensor(feat_train)
     edges_train = torch.LongTensor(edges_train)
@@ -206,8 +209,10 @@ def load_kuramoto_data(batch_size=1, suffix=''):
     feat_max = feat_train.max(0).max(0).max(0)
     feat_min = feat_train.min(0).min(0).min(0)
 
-    feat_max = np.expand_dims(np.expand_dims(np.expand_dims(feat_max, 0), 0), 0)
-    feat_min = np.expand_dims(np.expand_dims(np.expand_dims(feat_min, 0), 0), 0)
+    feat_max = np.expand_dims(np.expand_dims(
+        np.expand_dims(feat_max, 0), 0), 0)
+    feat_min = np.expand_dims(np.expand_dims(
+        np.expand_dims(feat_min, 0), 0), 0)
 
     # Normalize to [-1, 1]
     feat_train = (feat_train - feat_min) * 2 / (feat_max - feat_min) - 1
@@ -394,8 +399,8 @@ def get_minimum_distance(data):
     data = data[:, :, :, :2].transpose(1, 2)
     data_norm = (data ** 2).sum(-1, keepdim=True)
     dist = data_norm + \
-           data_norm.transpose(2, 3) - \
-           2 * torch.matmul(data, data.transpose(2, 3))
+        data_norm.transpose(2, 3) - \
+        2 * torch.matmul(data, data.transpose(2, 3))
     min_dist, _ = dist.min(1)
     return min_dist.view(min_dist.size(0), -1)
 
