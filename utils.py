@@ -116,17 +116,17 @@ def binary_accuracy(output, labels):
 
 
 def load_data(batch_size=1, suffix=''):
-    loc_train = np.load('data/loc_train' + suffix + '.npy')
-    vel_train = np.load('data/vel_train' + suffix + '.npy')
-    edges_train = np.load('data/edges_train' + suffix + '.npy')
+    loc_train = np.load('data/{}/loc_train.npy'.format(suffix))
+    vel_train = np.load('data/{}/vel_train.npy'.format(suffix))
+    edges_train = np.load('data/{}/edges_train.npy'.format(suffix))
 
-    loc_valid = np.load('data/loc_valid' + suffix + '.npy')
-    vel_valid = np.load('data/vel_valid' + suffix + '.npy')
-    edges_valid = np.load('data/edges_valid' + suffix + '.npy')
+    loc_valid = np.load('data/{}/loc_valid.npy'.format(suffix))
+    vel_valid = np.load('data/{}/vel_valid.npy'.format(suffix))
+    edges_valid = np.load('data/{}/edges_valid.npy'.format(suffix))
 
-    loc_test = np.load('data/loc_test' + suffix + '.npy')
-    vel_test = np.load('data/vel_test' + suffix + '.npy')
-    edges_test = np.load('data/edges_test' + suffix + '.npy')
+    loc_test = np.load('data/{}/loc_test.npy'.format(suffix))
+    vel_test = np.load('data/{}/vel_test.npy'.format(suffix))
+    edges_test = np.load('data/{}/edges_test.npy'.format(suffix))
 
     # [num_samples, num_timesteps, num_dims, num_atoms]
     num_atoms = loc_train.shape[3]
@@ -195,12 +195,12 @@ def load_data(batch_size=1, suffix=''):
 
 
 def load_kuramoto_data(batch_size=1, suffix=''):
-    feat_train = np.load('data/feat_train' + suffix + '.npy')
-    edges_train = np.load('data/edges_train' + suffix + '.npy')
-    feat_valid = np.load('data/feat_valid' + suffix + '.npy')
-    edges_valid = np.load('data/edges_valid' + suffix + '.npy')
-    feat_test = np.load('data/feat_test' + suffix + '.npy')
-    edges_test = np.load('data/edges_test' + suffix + '.npy')
+    feat_train = np.load('data/feat_train.npy')
+    edges_train = np.load('data/edges_train.npy')
+    feat_valid = np.load('data/feat_valid.npy')
+    edges_valid = np.load('data/edges_valid.npy')
+    feat_test = np.load('data/feat_test.npy')
+    edges_test = np.load('data/edges_test.npy')
 
     # [num_sims, num_atoms, num_timesteps, num_dims]
     num_atoms = feat_train.shape[1]
@@ -251,12 +251,12 @@ def load_kuramoto_data(batch_size=1, suffix=''):
 
 
 def load_kuramoto_data_old(batch_size=1, suffix=''):
-    feat_train = np.load('data/old_kuramoto/feat_train' + suffix + '.npy')
-    edges_train = np.load('data/old_kuramoto/edges_train' + suffix + '.npy')
-    feat_valid = np.load('data/old_kuramoto/feat_valid' + suffix + '.npy')
-    edges_valid = np.load('data/old_kuramoto/edges_valid' + suffix + '.npy')
-    feat_test = np.load('data/old_kuramoto/feat_test' + suffix + '.npy')
-    edges_test = np.load('data/old_kuramoto/edges_test' + suffix + '.npy')
+    feat_train = np.load('data/old_kuramoto/feat_train.npy')
+    edges_train = np.load('data/old_kuramoto/edges_train.npy')
+    feat_valid = np.load('data/old_kuramoto/feat_valid.npy')
+    edges_valid = np.load('data/old_kuramoto/edges_valid.npy')
+    feat_test = np.load('data/old_kuramoto/feat_test.npy')
+    edges_test = np.load('data/old_kuramoto/edges_test.npy')
 
     # [num_sims, num_atoms, num_timesteps, num_dims]
     num_atoms = feat_train.shape[1]
@@ -293,10 +293,10 @@ def load_kuramoto_data_old(batch_size=1, suffix=''):
 
 
 def load_motion_data(batch_size=1, suffix=''):
-    feat_train = np.load('data/motion_train' + suffix + '.npy')
-    feat_valid = np.load('data/motion_valid' + suffix + '.npy')
-    feat_test = np.load('data/motion_test' + suffix + '.npy')
-    adj = np.load('data/motion_adj' + suffix + '.npy')
+    feat_train = np.load('data/motion_train.npy')
+    feat_valid = np.load('data/motion_valid.npy')
+    feat_test = np.load('data/motion_test.npy')
+    adj = np.load('data/motion_adj.npy')
 
     # NOTE: Already normalized
 
