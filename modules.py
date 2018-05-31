@@ -504,7 +504,11 @@ class MLPDecoder(nn.Module):
             msg = F.relu(self.msg_fc1[i](pre_msg))
             msg = F.dropout(msg, p=self.dropout_prob)
             msg = F.relu(self.msg_fc2[i](msg))
-            # Element-wise
+            # Before the following operation, pre_msg carried by each edge is
+            # encoded by the MLP of the current edge type `i`. Sliced at `i`,
+            # `single_timestep_rel_type` preserves the msgs of the edges that
+            # belong to type `i` while setting others to 0.
+            # If edge types are exclusive in `single_timestep_rel_type`
             msg = msg * single_timestep_rel_type[:, :, :, i:i + 1]
             all_msgs += msg
 
