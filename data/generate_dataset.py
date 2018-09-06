@@ -67,23 +67,23 @@ loc_train, vel_train, edges_train = generate_dataset(args.num_train,
                                                      args.length,
                                                      args.sample_freq)
 
+np.save('loc_train' + suffix + '.npy', loc_train)
+np.save('vel_train' + suffix + '.npy', vel_train)
+np.save('edges_train' + suffix + '.npy', edges_train)
+
 print("Generating {} validation simulations".format(args.num_valid))
 loc_valid, vel_valid, edges_valid = generate_dataset(args.num_valid,
                                                      args.length,
                                                      args.sample_freq)
 
+np.save('loc_valid' + suffix + '.npy', loc_valid)
+np.save('vel_valid' + suffix + '.npy', vel_valid)
+np.save('edges_valid' + suffix + '.npy', edges_valid)
+
 print("Generating {} test simulations".format(args.num_test))
 loc_test, vel_test, edges_test = generate_dataset(args.num_test,
                                                   args.length_test,
                                                   args.sample_freq)
-
-np.save('loc_train' + suffix + '.npy', loc_train)
-np.save('vel_train' + suffix + '.npy', vel_train)
-np.save('edges_train' + suffix + '.npy', edges_train)
-
-np.save('loc_valid' + suffix + '.npy', loc_valid)
-np.save('vel_valid' + suffix + '.npy', vel_valid)
-np.save('edges_valid' + suffix + '.npy', edges_valid)
 
 np.save('loc_test' + suffix + '.npy', loc_test)
 np.save('vel_test' + suffix + '.npy', vel_test)
