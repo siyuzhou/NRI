@@ -361,7 +361,7 @@ class SimulationDecoder(nn.Module):
                 pair_dist = pair_dist.view(inputs.size(0), (inputs.size(2) - 1),
                                            inputs.size(1), inputs.size(1), 2)
                 forces = (
-                        forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
+                    forces_size.unsqueeze(-1).unsqueeze(1) * pair_dist).sum(
                     3)
             else:  # charged particle sim
                 e = (-1) * (edges * 2 - 1)
